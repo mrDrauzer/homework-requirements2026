@@ -5,7 +5,7 @@ from src.models import Product, Category
 
 def main():
     """Основная функция программы"""
-    print("=== Интернет-магазин ===")
+    print("=== Интернет-магазин === ")
 
     # Загрузка данных из JSON
     try:
