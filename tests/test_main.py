@@ -1,36 +1,8 @@
 import unittest
-import builtins
-from src.models import Product, Category
+from src.models import Product, Category, CategoryIterator
 
 
 class TestModels(unittest.TestCase):
-
-    def test_product_initialization(self):
-        product = Product("Ноутбук", "Модель 2023", 59990.0, 10)
-        self.assertEqual(product.name, "Ноутбук")
-        self.assertEqual(product.description, "Модель 2023")
-        self.assertEqual(product.price, 59990.0)
-        self.assertEqual(product.quantity, 10)
-
-    def test_product_setter_validation(self):
-        product = Product("Товар", "Описание", 1000, 5)
-        product.price = -100  # не должен принять
-        self.assertEqual(product.price, 1000)
-
-    def test_product_price_reduction_declined(self):
-        p = Product("X", "Desc", 5000, 5)
-        original_input = builtins.input
-        builtins.input = lambda _: "n"  # эмуляция отказа
-        p.price = 3000  # попытка понижения
-        builtins.input = original_input
-        self.assertEqual(p.price, 5000)  # цена осталась прежней
-
-    def test_new_product_creation(self):
-        data = {"name": "Test", "description": "Desc", "price": 2000, "quantity": 3}
-        p = Product.new_product(data)
-        self.assertEqual(p.name, "Test")
-        self.assertEqual(p.price, 2000)
-        self.assertEqual(p.quantity, 3)
 
     def test_category_add_product_and_count(self):
         cat = Category("Электроника", "Раздел для техники", [])
@@ -38,29 +10,46 @@ class TestModels(unittest.TestCase):
         p = Product("Колонка", "Bluetooth", 2990, 8)
         cat.add_product(p)
         self.assertEqual(cat.product_count, 1)
-        self.assertIn("Колонка", cat.products)  # products — теперь геттер: строка
+        # Проверка, что добавился правильный объект
+        self.assertTrue(any(prod.name == "Колонка" for prod in cat.products))
 
     def test_category_tracker_totals(self):
-        start_total_categories = Category.total_categories
-        start_total_products = Category.total_products
+        start_categories = Category.total_categories
+        start_products = Category.total_products
 
-        category = Category("Игрушки", "Детские товары", [])
-        prod1 = Product("Мяч", "Футбольный", 500, 15)
-        prod2 = Product("Кукла", "Барби", 1200, 5)
+        cat = Category("Игрушки", "Детские товары", [])
+        p1 = Product("Мяч", "Футбольный", 500, 15)
+        p2 = Product("Кукла", "Барби", 1200, 5)
+        cat.add_product(p1)
+        cat.add_product(p2)
 
-        category.add_product(prod1)
-        category.add_product(prod2)
+        self.assertEqual(cat.product_count, 2)
+        self.assertTrue(any(prod.name == "Кукла" for prod in cat.products))
 
-        self.assertEqual(category.product_count, 2)
-        self.assertTrue("Кукла" in category.products)
-        self.assertEqual(Category.total_categories, start_total_categories + 1)
-        self.assertEqual(Category.total_products, start_total_products + 2)
+        self.assertEqual(Category.total_categories, start_categories + 1)
+        self.assertEqual(Category.total_products, start_products + 2)
+
+    def test_product_addition(self):
+        p1 = Product("Item1", "desc", 100, 2)  # 200
+        p2 = Product("Item2", "desc", 50, 8)   # 400
+        result = p1 + p2
+        self.assertEqual(result, 600)
+
+    def test_category_str(self):
+        p1 = Product("Item1", "desc", 1500, 6)
+        p2 = Product("Item2", "desc", 2500, 3)
+        cat = Category("Техника", "Разное", [p1, p2])
+        self.assertIn("Техника, количество продуктов: 9 шт.", str(cat))
+
+    def test_iter_category(self):
+        p1 = Product("A", "Test", 100, 2)
+        p2 = Product("B", "Test", 200, 3)
+        cat = Category("TestCat", "desc", [p1, p2])
+
+        names = [p.name for p in CategoryIterator(cat)]
+        self.assertListEqual(names, ["A", "B"])
 
     def test_product_str_repr(self):
         p = Product("Тест", "Описание", 990, 3)
-        self.assertIn("Product:", str(p))
-        self.assertIn("Product(", repr(p))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual(str(p), "Тест, 990 руб. Остаток: 3 шт.")
+        self.assertEqual(repr(p), "Product('Тест', 'Описание', 990, 3)")

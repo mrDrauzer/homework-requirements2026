@@ -46,6 +46,14 @@ class Product:
             product_data["quantity"]
         )
 
+    def __str__(self):
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
+    def __add__(self, other):
+        if isinstance(other, Product):
+            return self.price * self.quantity + other.price * other.quantity
+        return NotImplemented
+
 
 class Category:
     """
@@ -74,11 +82,26 @@ class Category:
     @property
     def products(self):
         """
-        Геттер для приватного атрибута __products.
-        Возвращает строку с товарами:
-        'Название продукта, X руб. Остаток: X шт.\n'
+        Возвращает список объектов продуктов.
         """
-        return "".join(
-            f"{p.name}, {p.price} руб. Остаток: {p.quantity} шт.\n"
-            for p in self.__products
-        )
+        return self.__products
+
+    def __str__(self):
+        total_quantity = sum(product.quantity for product in self.products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
+
+class CategoryIterator:
+    def __init__(self, category):
+        self._products = category.products
+        self._index = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._index < len(self._products):
+            product = self._products[self._index]
+            self._index += 1
+            return product
+        raise StopIteration
