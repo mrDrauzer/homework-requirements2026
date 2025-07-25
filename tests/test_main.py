@@ -1,5 +1,5 @@
 import unittest
-from src.models import Product, Category, CategoryIterator
+from src.models import Product, Category, CategoryIterator, Smartphone, LawnGrass
 
 
 class TestModels(unittest.TestCase):
