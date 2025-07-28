@@ -62,6 +62,8 @@ class Product(CreationInfoMixin, BaseProduct):
     Основной класс продукта
     """
     def __init__(self, name, description, price, quantity):
+        if quantity == 0:
+            raise ValueError("Товар с нулевым количеством не может быть добавлен")
         super().__init__(name, description, price, quantity)
 
     def __str__(self):
@@ -117,8 +119,8 @@ class Category:
     """
     Класс для категорий товаров
     """
-    total_products = 0        # Общее количество продуктов во всех категориях
-    total_categories = 0      # Общее количество категорий
+    total_products = 0  # Общее количество продуктов во всех категориях
+    total_categories = 0  # Общее количество категорий
 
     def __init__(self, name, description, products=None):
         self.name = name
@@ -143,7 +145,6 @@ class Category:
         total_quantity = sum(product.quantity for product in self.products)
         return f"{self.name}, количество продуктов: {total_quantity} шт."
 
-    # classproperty для корректной работы print(Category.category_count)
     @classproperty
     def category_count(cls):
         """Общее количество категорий."""
@@ -153,6 +154,12 @@ class Category:
     def product_count(cls):
         """Общее количество продуктов во всех категориях."""
         return cls.total_products
+
+    def middle_price(self):
+        try:
+            return sum([product.price for product in self.products]) / len(self.products)
+        except ZeroDivisionError:
+            return 0
 
 class CategoryIterator:
     """
