@@ -1,11 +1,9 @@
 import unittest
-
 from src.models import Product, Category, CategoryIterator, Smartphone, LawnGrass
 
 class TestModels(unittest.TestCase):
 
     def setUp(self):
-        # Сброс статических счётчиков перед каждым тестом
         Category.total_categories = 0
         Category.total_products = 0
 
@@ -14,10 +12,8 @@ class TestModels(unittest.TestCase):
         self.assertEqual(cat.product_count, 0)
         self.assertEqual(Category.total_categories, 1)
         self.assertEqual(Category.total_products, 0)
-
         p = Product("Колонка", "Bluetooth", 2990, 8)
         cat.add_product(p)
-
         self.assertEqual(cat.product_count, 1)
         self.assertEqual(Category.total_products, 1)
         self.assertTrue(any(prod.name == "Колонка" for prod in cat.products))
@@ -25,13 +21,11 @@ class TestModels(unittest.TestCase):
     def test_category_tracker_totals(self):
         start_categories = Category.total_categories
         start_products = Category.total_products
-
         cat = Category("Игрушки", "Детские товары", [])
         p1 = Product("Мяч", "Футбольный", 500, 15)
         p2 = Product("Кукла", "Барби", 1200, 5)
         cat.add_product(p1)
         cat.add_product(p2)
-
         self.assertEqual(cat.product_count, 2)
         self.assertTrue(any(prod.name == "Кукла" for prod in cat.products))
         self.assertEqual(Category.total_categories, start_categories + 1)
@@ -76,6 +70,23 @@ class TestModels(unittest.TestCase):
         rep = repr(grass)
         self.assertIn("LawnGrass(", rep)
         self.assertIn("Россия", rep)
+
+    # --- Новые тесты для вашей домашки ---
+    def test_product_zero_quantity_raises(self):
+        with self.assertRaises(ValueError) as context:
+            Product("Бракованный товар", "Неверное количество", 1000, 0)
+        self.assertEqual(str(context.exception), "Товар с нулевым количеством не может быть добавлен")
+
+    def test_category_middle_price(self):
+        p1 = Product("Товар1", "desc", 100, 2)
+        p2 = Product("Товар2", "desc", 200, 3)
+        cat = Category("Категория", "Описание", [p1, p2])
+        self.assertEqual(cat.middle_price(), 150)
+
+    def test_category_middle_price_empty(self):
+        cat = Category("Пустая", "Без товаров", [])
+        self.assertEqual(cat.middle_price(), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
