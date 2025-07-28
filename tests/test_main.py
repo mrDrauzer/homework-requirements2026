@@ -1,16 +1,25 @@
 import unittest
+
 from src.models import Product, Category, CategoryIterator, Smartphone, LawnGrass
 
-
 class TestModels(unittest.TestCase):
+
+    def setUp(self):
+        # Сброс статических счётчиков перед каждым тестом
+        Category.total_categories = 0
+        Category.total_products = 0
 
     def test_category_add_product_and_count(self):
         cat = Category("Электроника", "Раздел для техники", [])
         self.assertEqual(cat.product_count, 0)
+        self.assertEqual(Category.total_categories, 1)
+        self.assertEqual(Category.total_products, 0)
+
         p = Product("Колонка", "Bluetooth", 2990, 8)
         cat.add_product(p)
+
         self.assertEqual(cat.product_count, 1)
-        # Проверка, что добавился правильный объект
+        self.assertEqual(Category.total_products, 1)
         self.assertTrue(any(prod.name == "Колонка" for prod in cat.products))
 
     def test_category_tracker_totals(self):
@@ -25,9 +34,12 @@ class TestModels(unittest.TestCase):
 
         self.assertEqual(cat.product_count, 2)
         self.assertTrue(any(prod.name == "Кукла" for prod in cat.products))
-
         self.assertEqual(Category.total_categories, start_categories + 1)
         self.assertEqual(Category.total_products, start_products + 2)
+
+        # Проверка classproperty
+        self.assertEqual(Category.category_count, Category.total_categories)
+        self.assertEqual(Category.product_count, Category.total_products)
 
     def test_product_addition(self):
         p1 = Product("Item1", "desc", 100, 2)  # 200
@@ -45,7 +57,6 @@ class TestModels(unittest.TestCase):
         p1 = Product("A", "Test", 100, 2)
         p2 = Product("B", "Test", 200, 3)
         cat = Category("TestCat", "desc", [p1, p2])
-
         names = [p.name for p in CategoryIterator(cat)]
         self.assertListEqual(names, ["A", "B"])
 
@@ -53,3 +64,18 @@ class TestModels(unittest.TestCase):
         p = Product("Тест", "Описание", 990, 3)
         self.assertEqual(str(p), "Тест, 990 руб. Остаток: 3 шт.")
         self.assertEqual(repr(p), "Product('Тест', 'Описание', 990, 3)")
+
+    def test_smartphone_repr(self):
+        phone = Smartphone("iPhone", "Apple", 1000, 5, 90, "iPhone 15", 256, "Black")
+        rep = repr(phone)
+        self.assertIn("Smartphone(", rep)
+        self.assertIn("iPhone", rep)
+
+    def test_lawngrass_repr(self):
+        grass = LawnGrass("Газон", "Зелёный", 500, 10, "Россия", "7 дней", "Зелёный")
+        rep = repr(grass)
+        self.assertIn("LawnGrass(", rep)
+        self.assertIn("Россия", rep)
+
+if __name__ == '__main__':
+    unittest.main()
